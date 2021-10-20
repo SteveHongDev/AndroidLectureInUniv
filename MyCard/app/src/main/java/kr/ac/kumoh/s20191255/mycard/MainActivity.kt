@@ -29,6 +29,7 @@ class MainActivity : AppCompatActivity() {
 //
 //        binding.card1.setImageResource(res)
         binding.btnDeal.setOnClickListener {
+
             val c = IntArray(5)
             val res = IntArray(5)
 
@@ -49,6 +50,8 @@ class MainActivity : AppCompatActivity() {
                     packageName
                 )
             }
+
+
             binding.card1.setImageResource(res[0])
             binding.card2.setImageResource(res[1])
             binding.card3.setImageResource(res[2])

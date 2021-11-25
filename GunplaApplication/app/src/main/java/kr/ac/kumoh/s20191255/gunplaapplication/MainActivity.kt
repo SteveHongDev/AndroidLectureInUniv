@@ -1,8 +1,13 @@
 package kr.ac.kumoh.s20191255.gunplaapplication
 
+import android.content.Intent
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
+import androidx.activity.viewModels
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.toolbox.JsonArrayRequest
@@ -13,11 +18,8 @@ import kr.ac.kumoh.s20191255.gunplaapplication.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
     private lateinit var view: ActivityMainBinding
 
-    companion object {
-        const val QUEUE_TAG = "VolleyRequest"
-    }
-
-    private lateinit var mQueue: RequestQueue
+    private val model: GunplaViewModel by viewModels()
+    private lateinit var adapter: GunplaAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -25,33 +27,25 @@ class MainActivity : AppCompatActivity() {
         view = ActivityMainBinding.inflate(layoutInflater)
         setContentView(view.root)
 
-        mQueue = VolleyRequest.getInstance(this.applicationContext).requestQueue
+        adapter = GunplaAdapter(model) { mechanic -> adapterOnClick(mechanic) }
 
-        requestMechanic()
+        view.list.apply {
+            layoutManager = LinearLayoutManager(applicationContext)
+            setHasFixedSize(true)
+            itemAnimator = DefaultItemAnimator()
+            adapter = this@MainActivity.adapter
+        }
+
+        model.list.observe(this, {
+            adapter.notifyDataSetChanged()
+        })
+
+        model.requestMechanic()
     }
 
-    override fun onStop() {
-        super.onStop()
-        mQueue.cancelAll(QUEUE_TAG)
-    }
-
-    private fun requestMechanic() {
-        val url = "https://expressforvolley-hcxlq.run.goorm.io/gunpladb/mechanic/"
-
-        val request = JsonArrayRequest(
-            Request.Method.GET,
-            url,
-            null,
-            {
-                view.result.text = it.toString()
-            },
-            {
-                Toast.makeText(this, it.toString(), Toast.LENGTH_LONG).show()
-                view.result.text = it.toString()
-            }
-        )
-
-        request.tag = QUEUE_TAG
-        mQueue.add(request)
+    private fun adapterOnClick(mechanic: GunplaViewModel.Mechanic): Unit {
+        val uri = Uri.parse("https://www.youtube.com/results?search_query=${mechanic.model}")
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        startActivity(intent)
     }
 }
